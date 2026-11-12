@@ -24,6 +24,44 @@ percorrer os chamados existentes até achar a posição. Alocar e ligar o novo n
 custa O(1). Atender custa O(1), porque remove o primeiro nó; exibir a fila custa
 O(n), pois percorre todos os chamados. O espaço usado é O(n).
 
+### Complexidade das operações
+
+| Operação | Complexidade | Justificativa |
+|---|---:|---|
+| Criar fila | O(1) | Inicializa a estrutura com valores fixos. |
+| Inserir chamado | O(n) no pior caso | Percorre os nós até encontrar a posição pela prioridade. |
+| Atender chamado | O(1) | Remove o nó do início da lista. |
+| Exibir fila | O(n) | Visita cada chamado uma vez. |
+| Liberar fila | O(n) | Percorre e libera cada nó. |
+| Espaço ocupado | O(n) | Cada chamado armazenado usa um nó alocado dinamicamente. |
+
+### Sequências de estados
+
+**Inserir chamado crítico** em uma fila que contém um chamado alto e um normal:
+
+```text
+Antes:     [Alta: A] -> [Normal: B] -> NULL
+Inserir:   [Crítica: C]
+Depois:    [Crítica: C] -> [Alta: A] -> [Normal: B] -> NULL
+```
+
+**Atender chamado** remove sempre o nó do início:
+
+```text
+Antes:     [Crítica: C] -> [Alta: A] -> [Normal: B] -> NULL
+Atender:   remove [Crítica: C]
+Depois:    [Alta: A] -> [Normal: B] -> NULL
+```
+
+Chamados com a mesma prioridade são inseridos depois dos chamados daquela
+prioridade que já estão na lista, preservando a ordem de chegada:
+
+```text
+Antes:     [Alta: A] -> [Normal: B] -> NULL
+Inserir:   [Alta: C]
+Depois:    [Alta: A] -> [Alta: C] -> [Normal: B] -> NULL
+```
+
 Para demonstrar: cadastre um chamado normal, dois críticos e um alto. Ao exibir
 a fila, os críticos devem aparecer primeiro, na ordem em que foram cadastrados,
 seguidos pelo alto e pelo normal. Ao escolher **2 - Atender chamado**, o primeiro
@@ -51,3 +89,6 @@ gcc main.c fila_prioridade.c -o central_chamados -Wall -Wextra -std=c11
 ```bash
 ./central_chamados
 ```
+
+As descrições aceitam até 99 caracteres. Se a entrada terminar durante a
+execução, o programa encerra e libera a memória da fila.
