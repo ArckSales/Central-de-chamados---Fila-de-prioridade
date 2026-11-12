@@ -2,12 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "fila_prioridade.h"
 
 // Lendo os números:
 
-int lerInteiro(const char* mensagem) {
+int lerInteiro(const char* mensagem, int* resultado) {
 
     char entrada[100];
     char* fim;
@@ -18,12 +20,13 @@ int lerInteiro(const char* mensagem) {
         printf("%s", mensagem);
 
         if (fgets(entrada, sizeof(entrada), stdin) == NULL) {
-            return -1;
+            return 0;
         }
 
+        errno = 0;
         valor = strtol(entrada, &fim, 10);
 
-        if (fim == entrada) {
+        if (fim == entrada || errno == ERANGE || valor < INT_MIN || valor > INT_MAX) {
             printf("Entrada invalida! Digite um numero.\n");
             continue;
         }
@@ -37,7 +40,8 @@ int lerInteiro(const char* mensagem) {
             continue;
         }
 
-        return (int)valor;
+        *resultado = (int)valor;
+        return 1;
     }
 }
  
@@ -75,7 +79,10 @@ int main() {
 
         printf("========================================\n");
 
-        opcao = lerInteiro("Escolha uma opcao: ");
+        if (!lerInteiro("Escolha uma opcao: ", &opcao)) {
+            printf("\nFim da entrada. Encerrando o programa...\n");
+            break;
+        }
 
         switch (opcao) {
 
@@ -87,11 +94,21 @@ int main() {
                 printf("Digite a descricao do chamado: ");
 
                 if (fgets(descricao, sizeof(descricao), stdin) == NULL) {
-                    printf("\nErro ao ler descricao!\n");
+                    printf("\nFim da entrada. Encerrando o programa...\n");
                     break;
                 }
 
-                descricao[strcspn(descricao, "\n")] = '\0';
+                size_t tamanho = strcspn(descricao, "\n");
+                if (descricao[tamanho] == '\n') {
+                    descricao[tamanho] = '\0';
+                } else {
+                    int caractere;
+                    while ((caractere = getchar()) != '\n' && caractere != EOF) {
+                        // Descarta o restante da descricao longa.
+                    }
+                    printf("\nDescricao muito longa. Use ate 99 caracteres.\n");
+                    break;
+                }
 
                 if (descricao[0] == '\0') {
                     printf("\nA descricao nao pode ficar vazia!\n");
@@ -103,7 +120,11 @@ int main() {
                 printf("2 - Alta\n");
                 printf("3 - Critica\n");
 
-                prioridade = lerInteiro("Escolha a prioridade: ");
+                if (!lerInteiro("Escolha a prioridade: ", &prioridade)) {
+                    printf("\nFim da entrada. Encerrando o programa...\n");
+                    opcao = 0;
+                    break;
+                }
 
                 if (prioridade < NORMAL || prioridade > CRITICA) {
 
